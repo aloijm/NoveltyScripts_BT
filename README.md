@@ -23,7 +23,7 @@ in the AFNI gui after running this to QC and to make sure the preprocessing step
 
 # First level GLMs
 1_3dDec_PIC_NOV_only.csh/1_3dDec_PIC_NOV_only_NM.csh
-Uses 3dDeconvolve to run first level GLMs on the preprocessed data.  Use the "_NM" variety if the participant responded on all trials
+Uses 3dDeconvolve to run first level GLMs on the preprocessed data.  Use the "_NM" variety if the participant responded on all trials (No Miss)
 
 3_Quality_Contrl_Par_PICTURE.5.csh
 Extract QC parameters on the first level GLMs.
