@@ -1,0 +1,64 @@
+#!/bin/tcsh
+
+########################################
+#Part 1: Set Paths and Variables
+
+#set file paths
+set rootdir_analysis="$PWD"
+set rootdir_subbrick="/Volumes/alojos/subbricks/Novelty_Model10"
+
+#subject IDs
+set subID="1085	1110	1123	1125	1127	1128	1131	1134	1142	1147	1162	1167	1169	1170	1171	1177	1187	1188	1200	1208	1214	1251	1254	1258	1289	2024	2140	2150	2174	2178	2184	2192	2194	2200	2201	2206	2208	2209	2213	2217	2218	2226	2236	2237	2242	2247	2251	2255	2267	2271	2274	2276	2278	2284	2286	2292	2298	2305	2306	2311	2313	2323	2326	2327	2329	2332	2335	2336	2338	2340	2341	2347	2357	2360	2362	2364	2365	2376	2379	2382	2383	2389	2392	2394	2400	2403	2409	2417	2420	2421	2423	2434	2435	2438	2458	2462	2470	2476	2478	2483	2485	2489	2503	2515	2516	2521	2529	2538	2539	2544	2550	2561	2579	2582	2583	2589	2607	2615	2627	2630	2631	2653	2658	2696	2727	1054-2	2443-3O	2535-2"
+
+#set threshold
+set thresh="11.250"
+
+#set output file names
+set output_name="PE_Basic_Mod"
+
+#set assigned cluster number for extract file
+set cluster_number="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18"
+
+#specify which BRIK files to unpack here
+set bricks="NOVEL6_Basic_PE_mod"
+
+
+
+
+########################################
+#Part 2: Unpack files
+#this creates cluster mask using 3dmerge that will be used in the Extract text file- you will need to change the last argument to point it to the correct contrast
+foreach cluster ($cluster_number)
+	3dmerge -1thresh "$thresh" -1clust_order 3 27 -prefix "$output_name"_clust 'Fdb_PE_Basic_mod+tlrc[0]'
+	gunzip "$output_name"_clust+tlrc.BRIK.gz
+
+	#this creates extract text file from the subject that will be used by sjf_maskave to point it to the right subbricks and extract BOLD data from the mask created by 3dmerge
+	echo MASKS >> Extract_"$output_name".txt
+	echo "$rootdir_analysis"/"$output_name"_clust+tlrc.BRIK >> Extract_"$output_name".txt
+	echo "$cluster" >> Extract_"$output_name".txt
+
+	foreach i ($subID)
+		echo SUBJECT >> Extract_"$output_name".txt
+		echo "$i" >> Extract_"$output_name".txt
+		echo DIRECTORY >> Extract_"$output_name".txt
+		echo "$rootdir_subbrick"/"$i" >> Extract_"$output_name".txt
+		echo IMAGES >> Extract_"$output_name".txt
+			foreach j ($bricks)
+				echo "$j"+tlrc.BRIK >> Extract_"$output_name".txt
+			end
+	end
+
+	#this runs sjfmaskave to extract BOLD data from the subbricks
+	./sjf_maskave Extract_"$output_name".txt "$cluster"_"$output_name".txt
+
+	#creates new directory and copies output files into new directory
+	cd "$rootdir_analysis"
+	mkdir "$cluster"_"$output_name"
+	mv Extract_"$output_name".txt "$rootdir_analysis"/"$cluster"_"$output_name"
+	mv "$output_name"_clust+tlrc.BRIK "$rootdir_analysis"/"$cluster"_"$output_name"
+	mv "$output_name"_clust+tlrc.HEAD "$rootdir_analysis"/"$cluster"_"$output_name"
+	mv "$cluster"_"$output_name".txt "$rootdir_analysis"/"$cluster"_"$output_name"
+	cp unpack_data.txt "$rootdir_analysis"/"$cluster"_"$output_name"
+	cp ImportAndPivot_Template.xlsm "$rootdir_analysis"/"$cluster"_"$output_name"/"$cluster"_"$output_name".xlsm
+
+end
